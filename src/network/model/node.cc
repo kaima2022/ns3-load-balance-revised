@@ -67,7 +67,8 @@ Node::GetTypeId (void)
                    MakeUintegerAccessor (&Node::m_id),
                    MakeUintegerChecker<uint32_t> ())
     .AddAttribute ("SystemId", "The systemId of this node: a unique integer used for parallel simulations.",
-                   TypeId::ATTR_GET || TypeId::ATTR_SET,
+                   static_cast<uint32_t>(TypeId::ATTR_GET) |
+                   static_cast<uint32_t>(TypeId::ATTR_SET),
                    UintegerValue (0),
                    MakeUintegerAccessor (&Node::m_sid),
                    MakeUintegerChecker<uint32_t> ())

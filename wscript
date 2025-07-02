@@ -705,7 +705,7 @@ def add_scratch_programs(bld):
                 obj.target = filename
                 obj.name = obj.target
                 obj.install_path = None
-            elif filename.endswith(".cc"):
+            elif filename.endswith(".cc") and filename != 'cdf.cc':
                 name = filename[:-len(".cc")]
                 obj = bld.create_ns3_program(name, all_modules)
                 obj.path = obj.path.find_dir('scratch')
