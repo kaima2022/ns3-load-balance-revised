@@ -1,3 +1,5 @@
+感谢前辈，借助此项目学习ns3实现拥塞控制和负载均衡，并尝试修改有关协议。
+
 ns3-load-balance
 ===
 ![Build Status](https://travis-ci.com/snowzjx/ns3-load-balance.svg?token=h9rZZxytGHrsS5Xgsb6n&branch=master)
