@@ -173,59 +173,135 @@ T rand_range (T min, T max)
     return min + ((double)max - min) * rand () / RAND_MAX;
 }
 
+// void install_applications (int fromLeafId, NodeContainer servers, double requestRate, struct cdf_table *cdfTable,
+//         long &flowCount, long &totalFlowSize, int SERVER_COUNT, int LEAF_COUNT, double START_TIME, double END_TIME, double FLOW_LAUNCH_END_TIME, uint32_t applicationPauseThresh, uint32_t applicationPauseTime)
+// {
+//     NS_LOG_INFO ("Install applications:");
+//     for (int i = 0; i < SERVER_COUNT; i++)
+//     {
+//         int fromServerIndex = fromLeafId * SERVER_COUNT + i;
+
+//         double startTime = START_TIME + poission_gen_interval (requestRate);
+//         while (startTime < FLOW_LAUNCH_END_TIME)
+//         {
+//             flowCount ++;
+//             uint16_t port = rand_range (PORT_START, PORT_END);
+
+//             int destServerIndex = fromServerIndex;
+// 	        while (destServerIndex >= fromLeafId * SERVER_COUNT && destServerIndex < fromLeafId * SERVER_COUNT + SERVER_COUNT)
+//             {
+// 		        destServerIndex = rand_range (0, SERVER_COUNT * LEAF_COUNT);
+//             }
+
+// 	        Ptr<Node> destServer = servers.Get (destServerIndex);
+// 	        Ptr<Ipv4> ipv4 = destServer->GetObject<Ipv4> ();
+// 	        Ipv4InterfaceAddress destInterface = ipv4->GetAddress (1,0);
+// 	        Ipv4Address destAddress = destInterface.GetLocal ();
+
+//             BulkSendHelper source ("ns3::TcpSocketFactory", InetSocketAddress (destAddress, port));
+//             uint32_t flowSize = gen_random_cdf (cdfTable);
+
+//             totalFlowSize += flowSize;
+//  	        source.SetAttribute ("SendSize", UintegerValue (PACKET_SIZE));
+//             source.SetAttribute ("MaxBytes", UintegerValue(flowSize));
+//             source.SetAttribute ("DelayThresh", UintegerValue (applicationPauseThresh));
+//             source.SetAttribute ("DelayTime", TimeValue (MicroSeconds (applicationPauseTime)));
+
+//             // Install apps
+//             ApplicationContainer sourceApp = source.Install (servers.Get (fromServerIndex));
+//             sourceApp.Start (Seconds (startTime));
+//             sourceApp.Stop (Seconds (END_TIME));
+
+//             // Install packet sinks
+//             PacketSinkHelper sink ("ns3::TcpSocketFactory",
+//                     InetSocketAddress (Ipv4Address::GetAny (), port));
+//             ApplicationContainer sinkApp = sink.Install (servers. Get (destServerIndex));
+//             sinkApp.Start (Seconds (START_TIME));
+//             sinkApp.Stop (Seconds (END_TIME));
+
+//             /*
+//             NS_LOG_INFO ("\tFlow from server: " << fromServerIndex << " to server: "
+//                     << destServerIndex << " on port: " << port << " with flow size: "
+//                     << flowSize << " [start time: " << startTime <<"]");
+//             */
+
+//             startTime += poission_gen_interval (requestRate);
+//         }
+//     }
+// }
+
 void install_applications (int fromLeafId, NodeContainer servers, double requestRate, struct cdf_table *cdfTable,
         long &flowCount, long &totalFlowSize, int SERVER_COUNT, int LEAF_COUNT, double START_TIME, double END_TIME, double FLOW_LAUNCH_END_TIME, uint32_t applicationPauseThresh, uint32_t applicationPauseTime)
 {
-    NS_LOG_INFO ("Install applications:");
-    for (int i = 0; i < SERVER_COUNT; i++)
+    NS_LOG_INFO ("Install applications:"); // Already exists 
+
+    // 外层循环：遍历每个叶子节点下的服务器
+    for (int i = 0; i < SERVER_COUNT; i++) 
     {
-        int fromServerIndex = fromLeafId * SERVER_COUNT + i;
+        int fromServerIndex = fromLeafId * SERVER_COUNT + i; 
+        // 打印当前正在配置的源服务器
+        NS_LOG_INFO("  Configuring applications for source server index: " << fromServerIndex);
 
-        double startTime = START_TIME + poission_gen_interval (requestRate);
-        while (startTime < FLOW_LAUNCH_END_TIME)
+        double startTime = START_TIME + poission_gen_interval (requestRate); 
+        // 打印每个源服务器的初始启动时间
+        NS_LOG_INFO("    Initial flow start time for server " << fromServerIndex << ": " << startTime);
+
+        // 内层循环：生成单个服务器的流
+        while (startTime < FLOW_LAUNCH_END_TIME) 
         {
-            flowCount ++;
-            uint16_t port = rand_range (PORT_START, PORT_END);
+            flowCount ++; 
+            // 打印当前流的数量和正在处理的流的启动时间
+            NS_LOG_INFO("      Generated flow " << flowCount << ", current startTime: " << startTime);
 
-            int destServerIndex = fromServerIndex;
-	        while (destServerIndex >= fromLeafId * SERVER_COUNT && destServerIndex < fromLeafId * SERVER_COUNT + SERVER_COUNT)
+            uint16_t port = rand_range (PORT_START, PORT_END); 
+            int destServerIndex = fromServerIndex; 
+
+            // 目标服务器选择循环
+            while (destServerIndex >= fromLeafId * SERVER_COUNT && destServerIndex < fromLeafId * SERVER_COUNT + SERVER_COUNT) 
             {
-		        destServerIndex = rand_range (0, SERVER_COUNT * LEAF_COUNT);
+		        destServerIndex = rand_range (0, SERVER_COUNT * LEAF_COUNT); 
+                // 打印目标服务器的选择尝试
+                NS_LOG_INFO("        Attempting to select destination server, current choice: " << destServerIndex);
             }
+            // 打印最终选定的目标服务器
+            NS_LOG_INFO("        Selected destination server index: " << destServerIndex);
 
-	        Ptr<Node> destServer = servers.Get (destServerIndex);
-	        Ptr<Ipv4> ipv4 = destServer->GetObject<Ipv4> ();
-	        Ipv4InterfaceAddress destInterface = ipv4->GetAddress (1,0);
-	        Ipv4Address destAddress = destInterface.GetLocal ();
+	        Ptr<Node> destServer = servers.Get (destServerIndex); 
+	        Ptr<Ipv4> ipv4 = destServer->GetObject<Ipv4> (); 
+            Ipv4InterfaceAddress destInterface = ipv4->GetAddress (1,0); 
+	        Ipv4Address destAddress = destInterface.GetLocal (); 
 
-            BulkSendHelper source ("ns3::TcpSocketFactory", InetSocketAddress (destAddress, port));
-            uint32_t flowSize = gen_random_cdf (cdfTable);
+            BulkSendHelper source ("ns3::TcpSocketFactory", InetSocketAddress (destAddress, port)); 
+            uint32_t flowSize = gen_random_cdf (cdfTable); 
 
-            totalFlowSize += flowSize;
- 	        source.SetAttribute ("SendSize", UintegerValue (PACKET_SIZE));
-            source.SetAttribute ("MaxBytes", UintegerValue(flowSize));
-            source.SetAttribute ("DelayThresh", UintegerValue (applicationPauseThresh));
-            source.SetAttribute ("DelayTime", TimeValue (MicroSeconds (applicationPauseTime)));
+            totalFlowSize += flowSize; 
+ 	        source.SetAttribute ("SendSize", UintegerValue (PACKET_SIZE)); 
+            source.SetAttribute ("MaxBytes", UintegerValue(flowSize)); 
+            source.SetAttribute ("DelayThresh", UintegerValue (applicationPauseThresh)); 
+            source.SetAttribute ("DelayTime", TimeValue (MicroSeconds (applicationPauseTime))); 
 
             // Install apps
-            ApplicationContainer sourceApp = source.Install (servers.Get (fromServerIndex));
-            sourceApp.Start (Seconds (startTime));
-            sourceApp.Stop (Seconds (END_TIME));
+            ApplicationContainer sourceApp = source.Install (servers.Get (fromServerIndex)); 
+            sourceApp.Start (Seconds (startTime)); 
+            sourceApp.Stop (Seconds (END_TIME)); 
 
             // Install packet sinks
             PacketSinkHelper sink ("ns3::TcpSocketFactory",
-                    InetSocketAddress (Ipv4Address::GetAny (), port));
-            ApplicationContainer sinkApp = sink.Install (servers. Get (destServerIndex));
-            sinkApp.Start (Seconds (START_TIME));
-            sinkApp.Stop (Seconds (END_TIME));
+                    InetSocketAddress (Ipv4Address::GetAny (), port)); 
+            ApplicationContainer sinkApp = sink.Install (servers. Get (destServerIndex)); 
+            sinkApp.Start (Seconds (START_TIME)); 
+            sinkApp.Stop (Seconds (END_TIME)); 
 
-            /*
+            /* 
             NS_LOG_INFO ("\tFlow from server: " << fromServerIndex << " to server: "
                     << destServerIndex << " on port: " << port << " with flow size: "
                     << flowSize << " [start time: " << startTime <<"]");
-            */
+            */ 
 
-            startTime += poission_gen_interval (requestRate);
+            // 关键：startTime 的更新
+            double interval = poission_gen_interval (requestRate);
+            NS_LOG_INFO("        Generated Poisson interval: " << interval << " (requestRate: " << requestRate << ")");
+            startTime += interval; 
         }
     }
 }
